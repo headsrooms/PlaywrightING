@@ -51,9 +51,10 @@ async def get_transactions(
 
 
 async def download_transactions_file(
-    page, account_or_card_name: str, download_path: Path
+    page, account_or_card_name: str, downloads_path: Path
 ):
     print(f"Downloading data from {account_or_card_name}")
+    file_path = downloads_path / f"{account_or_card_name}.xlsx"
     await page.click(MY_PRODUCTS)
     await page.click(f"text={account_or_card_name}")
     if await has_transactions(page):
@@ -107,9 +108,7 @@ async def download_all_transactions_files(
     await page.goto(LOGIN_URL)
     for account_or_card in accounts_and_cards:
         await download_transactions_file(
-            page,
-            account_or_card.name,
-            transactions_downloads_path / f"{account_or_card.name}.xlsx",
+            page, account_or_card.name, transactions_downloads_path
         )
 
 
