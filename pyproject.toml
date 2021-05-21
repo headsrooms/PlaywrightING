@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "playwrightING"
-version = "0.1.0"
+version = "0.2.0"
 description = "Get your ING account data"
 authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
 license = "MIT"
