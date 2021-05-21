@@ -1,10 +1,9 @@
-from typing import List, Tuple
+from typing import List
 
 from playwright.async_api import Page
 
 from config import config
-from constants import ACCOUNT_PAGE_SCREENSHOT_PATH
-from selectors import (
+from page_selectors import (
     INPUT_YEAR,
     INPUT_MONTH,
     INPUT_DAY,
@@ -33,7 +32,6 @@ async def login(page: Page):
     await page.wait_for_selector(PIN_PAD)
     await fill_pass_code(page)
     await page.wait_for_selector(WAIT_AFTER_FILLING_PASS_CODE)
-    await page.screenshot(path=ACCOUNT_PAGE_SCREENSHOT_PATH)
 
 
 async def remove_cookies_banner(page: Page):

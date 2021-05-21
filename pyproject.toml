@@ -6,10 +6,12 @@ authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
-playwright = "^1.9"
-12factor-configclasses = "^0.3.0"
-python-dotenv = "^0.15.0"
+python = "^3.9"
+playwright = "^1.11"
+12factor-configclasses = "^0.3"
+python-dotenv = "^0.15"
+selectolax = "^0.2"
+more-itertools = "^8.7"
 
 [tool.poetry.dev-dependencies]
 
