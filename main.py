@@ -57,7 +57,9 @@ async def download_transactions_file(
     await page.click(MY_PRODUCTS)
     await page.click(f"text={account_or_card_name}")
     if await has_transactions(page):
-        await download_excel(page, download_path)
+        await asyncio.sleep(0.2)
+        await page.screenshot(path=f"screenshots/{account_or_card_name}.png")
+        await download_excel(page, file_path)
 
 
 async def main():
