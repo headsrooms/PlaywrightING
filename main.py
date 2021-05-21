@@ -74,7 +74,7 @@ async def main():
             print(overall_position)
             accounts_and_cards = [
                 *overall_position.accounts,
-                *overall_position.accounts,
+                *overall_position.cards,
             ]
             download_tasks = [
                 download_transactions_file(
