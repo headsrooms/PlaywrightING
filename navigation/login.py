@@ -1,8 +1,9 @@
 from typing import List
 
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError as PlayWrightTimeout
 
 from config import config
+from constants import LOGIN_URL
 from page_selectors import (
     INPUT_YEAR,
     INPUT_MONTH,
@@ -18,17 +19,32 @@ from page_selectors import (
     PIN_PAD,
     NEXT_BUTTON,
     WAIT_BEFORE_FILLING_ID_AND_BIRTHDAY,
+    REMEMBER_BUTTON,
 )
 
 
-async def login(page: Page):
-    await remove_cookies_banner(page)
-    await page.wait_for_selector(WAIT_BEFORE_FILLING_ID_AND_BIRTHDAY)
-    await fill_id_number(page, config.id_number)
-    await fill_birthday(
-        page, config.birthday_day, config.birthday_month, config.birthday_year
-    )
-    await page.click(NEXT_BUTTON)
+async def login(
+    page: Page,
+    full_flow: bool = True,
+    close_banner: bool = True,
+    remember: bool = False,
+):
+    await page.goto(LOGIN_URL)
+    if close_banner:
+        try:
+            await remove_cookies_banner(page)
+            await page.wait_for_selector(WAIT_BEFORE_FILLING_ID_AND_BIRTHDAY)
+        except PlayWrightTimeout:
+            pass
+
+    if full_flow:
+        await fill_id_number(page, config.id_number)
+        await fill_birthday(
+            page, config.birthday_day, config.birthday_month, config.birthday_year
+        )
+        if remember:
+            await page.click(REMEMBER_BUTTON)
+        await page.click(NEXT_BUTTON)
     await page.wait_for_selector(PIN_PAD)
     await fill_pass_code(page)
     await page.wait_for_selector(WAIT_AFTER_FILLING_PASS_CODE)

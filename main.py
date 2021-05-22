@@ -8,27 +8,44 @@ from playwright.async_api import (
     TimeoutError as PlayWrightTimeout,
     Page,
 )
+import pandas as pd
 
 from accounts import Position, Account, Card
 from config import config
 from constants import (
     BEFORE_TIMEOUT_SCREENSHOT_PATH,
     BEFORE_ERROR_SCREENSHOT_PATH,
-    LOGIN_URL,
 )
 from navigation.login import login
 from page_selectors import (
     MY_PRODUCTS,
-    EXCEL_BUTTON,
     NO_TRANSACTIONS_MESSAGE,
 )
 
 
-async def download_excel(page, download_path: Path):
-    async with page.expect_download(timeout=120_000) as download_info:
-        await page.click(EXCEL_BUTTON)
-    download = await download_info.value
-    await download.save_as(download_path)
+def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    days = "|".join(
+        [
+            "Lunes",
+            "Martes",
+            "Miércoles",
+            "Jueves",
+            "Viernes",
+            "Sábado",
+            "Domingo",
+            "Ayer",
+            "Hoy",
+        ]
+    )
+    df["Fecha"] = df["Fecha"].str.replace(days, "")
+    return df
+
+
+async def download_transaction_data(page, file_path: Path):
+    content = await page.inner_html(".c-basic-grid > div:nth-child(1)")
+    df = pd.read_html(content, thousands=".", decimal=",")[0]
+    df = process_transactions_dataframe(df)
+    df.to_csv(file_path)
 
 
 async def has_transactions(page) -> bool:
@@ -54,20 +71,17 @@ async def download_transactions_file(
     page, account_or_card_name: str, downloads_path: Path
 ):
     print(f"Downloading data from {account_or_card_name}")
-    file_path = downloads_path / f"{account_or_card_name}.xlsx"
+    file_path = downloads_path / f"{account_or_card_name}.csv"
+
     await page.click(MY_PRODUCTS)
     await page.click(f"text={account_or_card_name}")
-    if await has_transactions(page):
-        await asyncio.sleep(0.2)
-        await page.screenshot(path=f"screenshots/{account_or_card_name}.png")
-        await download_excel(page, file_path)
+    await download_transaction_data(page, file_path)
 
 
 async def main():
     async with async_playwright() as p:
         browser = await p.chromium.launch(downloads_path=Path(config.downloads_path))
         page = await browser.new_page(accept_downloads=True)
-        await page.goto(LOGIN_URL)
 
         try:
             await login(page)
@@ -79,16 +93,15 @@ async def main():
                 *overall_position.accounts,
                 *overall_position.cards,
             ]
-            download_tasks = [
-                download_transactions_file(
+
+            for account_or_card in accounts_and_cards:
+                print(f"Empieza {account_or_card.name}")
+                await download_transactions_file(
                     page,
                     account_or_card.name,
-                    transactions_downloads_path / f"{account_or_card.name}.xlsx",
+                    transactions_downloads_path,
                 )
-                for account_or_card in accounts_and_cards
-            ]
-
-            await asyncio.gather(*download_tasks)
+                print(f"Terminó {account_or_card.name}")
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
@@ -98,18 +111,6 @@ async def main():
             print(e)
         finally:
             await browser.close()
-
-
-async def download_all_transactions_files(
-    overall_position, browser, transactions_downloads_path
-):
-    accounts_and_cards = [*overall_position.accounts, *overall_position.accounts]
-    page = await browser.new_page(accept_downloads=True)
-    await page.goto(LOGIN_URL)
-    for account_or_card in accounts_and_cards:
-        await download_transactions_file(
-            page, account_or_card.name, transactions_downloads_path
-        )
 
 
 asyncio.run(main())

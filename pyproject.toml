@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "playwrightING"
-version = "0.2.0"
+version = "0.3.0"
 description = "Get your ING account data"
 authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
 license = "MIT"
@@ -12,6 +12,10 @@ playwright = "^1.11"
 python-dotenv = "^0.15"
 selectolax = "^0.2"
 more-itertools = "^8.7"
+pandas = "^1.2.4"
+lxml = "^4.6.3"
+html5lib = "^1.1"
+beautifulsoup4 = "^4.9.3"
 
 [tool.poetry.dev-dependencies]
 

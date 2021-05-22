@@ -10,6 +10,7 @@ PIN_PAD_SELECTABLE_CURRENT = "c-pinpad__secret-positions__position c-pinpad__sec
 PIN_PAD_POSITIONS = ".c-pinpad__secret-positions"
 WAIT_AFTER_FILLING_PASS_CODE = ".grid-group-header-movements"
 PIN_PAD = ".c-pinpad"
+REMEMBER_BUTTON = "#rememberCheckBox"
 NEXT_BUTTON = ".c-btn"
 WAIT_BEFORE_FILLING_ID_AND_BIRTHDAY = "#ing-uic-native-input_0"
 MY_PRODUCTS = "li.basic-main-bar-menus-list-item:nth-child(2) > i:nth-child(1)"
@@ -19,5 +20,8 @@ OVERALL_POSITION_AMOUNT = ".g-overall-position-amount"
 OPERATE_BUTTON = (
     "div.c-dropdown-button:nth-child(1) > div:nth-child(1) > button:nth-child(1)"
 )
-EXCEL_BUTTON = ".ico-excel"
+# EXCEL_BUTTON = ".ico-excel"
+EXCEL_BUTTON = "//html/body/div[1]/div/div[2]/div[8]/div/div/div/div/div/div[9]/div[1]/div/div[2]/div[2]/a/span"
 NO_TRANSACTIONS_MESSAGE = "#movements-content > div.row.transactions-grid-container > div.col12.col6-port > div:nth-child(3) > div > div > table > tbody > tr > td > p"
+LOGOUT_BUTTON = ".basic-logout-btn"
+LOGOUT_CLOSE = ".ico-close"
