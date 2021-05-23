@@ -95,13 +95,11 @@ async def main():
             ]
 
             for account_or_card in accounts_and_cards:
-                print(f"Empieza {account_or_card.name}")
                 await download_transactions_file(
                     page,
                     account_or_card.name,
                     transactions_downloads_path,
                 )
-                print(f"Terminó {account_or_card.name}")
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
