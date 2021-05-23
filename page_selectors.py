@@ -20,8 +20,11 @@ OVERALL_POSITION_AMOUNT = ".g-overall-position-amount"
 OPERATE_BUTTON = (
     "div.c-dropdown-button:nth-child(1) > div:nth-child(1) > button:nth-child(1)"
 )
-# EXCEL_BUTTON = ".ico-excel"
-EXCEL_BUTTON = "//html/body/div[1]/div/div[2]/div[8]/div/div/div/div/div/div[9]/div[1]/div/div[2]/div[2]/a/span"
+EXCEL_BUTTON = ".ico-excel"
 NO_TRANSACTIONS_MESSAGE = "#movements-content > div.row.transactions-grid-container > div.col12.col6-port > div:nth-child(3) > div > div > table > tbody > tr > td > p"
 LOGOUT_BUTTON = ".basic-logout-btn"
 LOGOUT_CLOSE = ".ico-close"
+TRANSACTIONS_TABLE = ".c-basic-grid > div:nth-child(1)"
+PREVIOUS_MONTH_BUTTON = ".navigate-back"
+DISABLED_PREVIOUS_MONTH_BUTTON = ".is-disabled.navigate-back"
+VER_MAS_BUTTON = "td.txt-c:nth-child(1) > span:nth-child(1)"

@@ -1,6 +1,6 @@
 from typing import List
 
-from playwright.async_api import Page, TimeoutError as PlayWrightTimeout
+from playwright.async_api import Page
 from selectolax.parser import HTMLParser
 
 
@@ -19,13 +19,6 @@ async def get_texts_within_css_selector(page: Page, selector: str):
 async def click_on_selectors_list(
     page: Page, selectors: List[str], timeout: int = None
 ):
-    for selector in selectors:
-        try:
-            print(f"Before clicking {selector}")
-            await page.click(selector, timeout=timeout)
-        except PlayWrightTimeout:
-            print(f"Error clicking {selector}")
-            continue
-        else:
-            print(f"After clicking {selector}")
-            break
+    selector = ", ".join(selectors)
+    print(f"Before clicking {selector}")
+    await page.click(selector, timeout=timeout)

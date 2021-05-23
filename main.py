@@ -2,13 +2,13 @@ import asyncio
 from pathlib import Path
 from typing import Union, Iterable
 
+import pandas as pd
 from playwright.async_api import (
     async_playwright,
     Error,
     TimeoutError as PlayWrightTimeout,
     Page,
 )
-import pandas as pd
 
 from accounts import Position, Account, Card
 from config import config
@@ -19,7 +19,10 @@ from constants import (
 from navigation.login import login
 from page_selectors import (
     MY_PRODUCTS,
-    NO_TRANSACTIONS_MESSAGE,
+    TRANSACTIONS_TABLE,
+    DISABLED_PREVIOUS_MONTH_BUTTON,
+    PREVIOUS_MONTH_BUTTON,
+    VER_MAS_BUTTON,
 )
 
 
@@ -37,23 +40,47 @@ def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             "Hoy",
         ]
     )
-    df["Fecha"] = df["Fecha"].str.replace(days, "")
+    df["Fecha"] = df["Fecha"].str.replace(days, "", regex=True)
     return df
 
 
-async def download_transaction_data(page, file_path: Path):
-    content = await page.inner_html(".c-basic-grid > div:nth-child(1)")
-    df = pd.read_html(content, thousands=".", decimal=",")[0]
-    df = process_transactions_dataframe(df)
-    df.to_csv(file_path)
-
-
-async def has_transactions(page) -> bool:
+async def has_previous_month(page) -> bool:
     try:
-        await page.wait_for_selector(NO_TRANSACTIONS_MESSAGE, timeout=1_000)
+        await page.wait_for_selector(DISABLED_PREVIOUS_MONTH_BUTTON, timeout=1_000)
         return False
     except PlayWrightTimeout:
         return True
+
+
+async def has_ver_mas_button(page) -> bool:
+    try:
+        await page.wait_for_selector(VER_MAS_BUTTON, timeout=1_000)
+        return True
+    except PlayWrightTimeout:
+        return False
+
+
+async def download_transaction_data(page, file_path: Path):
+    df = pd.DataFrame()
+    while True:
+        if await has_ver_mas_button(page):
+            await page.click(VER_MAS_BUTTON)
+
+        df = pd.concat([await get_transactions_from_page(page), df])
+
+        if await has_previous_month(page):
+            await page.click(PREVIOUS_MONTH_BUTTON)
+        else:
+            break
+
+    df.to_csv(file_path)
+
+
+async def get_transactions_from_page(page):
+    content = await page.inner_html(TRANSACTIONS_TABLE)
+    df = pd.read_html(content, thousands=".", decimal=",")[0]
+    df = process_transactions_dataframe(df)
+    return df
 
 
 async def get_transactions(
