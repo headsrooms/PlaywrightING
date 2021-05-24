@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 from typing import Union, Iterable
 
@@ -5,8 +6,14 @@ import pandas as pd
 from playwright.async_api import TimeoutError as PlayWrightTimeout, Page
 
 from accounts import Account, Card
-from page_selectors import DISABLED_PREVIOUS_MONTH_BUTTON, VER_MAS_BUTTON, PREVIOUS_MONTH_BUTTON, TRANSACTIONS_TABLE, \
-    MY_PRODUCTS
+from page_selectors import (
+    DISABLED_PREVIOUS_MONTH_BUTTON,
+    VER_MAS_BUTTON,
+    PREVIOUS_MONTH_BUTTON,
+    TRANSACTIONS_TABLE,
+    MY_PRODUCTS,
+    VALID_OPERATION_TEXT,
+)
 
 
 def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
@@ -43,18 +50,29 @@ async def has_ver_mas_button(page) -> bool:
         return False
 
 
+async def need_to_check_your_phone(page) -> bool:
+    try:
+        await page.wait_for_selector(f"text={VALID_OPERATION_TEXT}", timeout=1_000)
+        return True
+    except PlayWrightTimeout:
+        return False
+
+
 async def download_transaction_data(page, file_path: Path):
     df = pd.DataFrame()
-    while True:
-        if await has_ver_mas_button(page):
-            await page.click(VER_MAS_BUTTON)
+    while await has_previous_month(page):
+        while await has_ver_mas_button(page):
+            if await need_to_check_your_phone(page):
+                # give 60 seconds to accept a notification sent to your phone
+                await page.click(VER_MAS_BUTTON)
+                print("Check your phone and accept the notification")
+                await asyncio.sleep(60)
+            else:
+                await page.click(VER_MAS_BUTTON)
 
         df = pd.concat([await get_transactions_from_page(page), df])
 
-        if await has_previous_month(page):
-            await page.click(PREVIOUS_MONTH_BUTTON)
-        else:
-            break
+        await page.click(PREVIOUS_MONTH_BUTTON)
 
     df.to_csv(file_path)
 
