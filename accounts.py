@@ -1,5 +1,7 @@
+from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
 from typing import List, Iterable, Union, Tuple
 
 from more_itertools import pairwise
@@ -13,6 +15,7 @@ from page_selectors import (
     SAVINGS_ACCOUNTS,
     MY_PRODUCTS,
 )
+from transactions import download_transaction_data
 from utils import (
     get_number_from_string_with_dot_and_comma,
     get_texts_within_css_selector,
@@ -36,15 +39,35 @@ class Card:
             name, expense=get_number_from_string_with_dot_and_comma(remaining_info)
         )
 
+    @abstractmethod
+    async def get_transactions(self, page, downloads_path: Path):
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class CreditCard(Card):
     expense: float
 
+    async def get_transactions(self, page, downloads_path: Path):
+        print(f"Downloading data from {self.name}")
+        file_path = downloads_path / f"{self.name}.csv"
+
+        await page.click(MY_PRODUCTS)
+        await page.click(f"text={self.name}")
+        await download_transaction_data(page, file_path, is_credit_card=True)
+
 
 @dataclass(frozen=True)
 class DebitCard(Card):
     is_activated: bool = True
+
+    async def get_transactions(self, page, downloads_path: Path):
+        print(f"Downloading data from {self.name}")
+        file_path = downloads_path / f"{self.name}.csv"
+
+        await page.click(MY_PRODUCTS)
+        await page.click(f"text={self.name}")
+        await download_transaction_data(page, file_path)
 
 
 @dataclass(frozen=True)
@@ -116,6 +139,14 @@ class Account:
         )
         return Account.get_account_info(accounts, account_type)
 
+    async def get_transactions(self, page, downloads_path: Path):
+        print(f"Downloading data from {self.name}")
+        file_path = downloads_path / f"{self.name}.csv"
+
+        await page.click(MY_PRODUCTS)
+        await page.click(f"text={self.name}")
+        await download_transaction_data(page, file_path)
+
 
 @dataclass(frozen=True)
 class Transaction:
@@ -155,3 +186,11 @@ class Position:
             total_balance, [*normal_accounts, *savings_accounts], cards
         )
         return overall_position
+
+    async def get_transactions(self, page, transactions_downloads_path):
+        accounts_and_cards = [
+            *self.accounts,
+            *self.cards,
+        ]
+        for account_or_card in accounts_and_cards:
+            await account_or_card.get_transactions(page, transactions_downloads_path)

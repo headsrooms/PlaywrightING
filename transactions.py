@@ -1,16 +1,17 @@
-import asyncio
 from pathlib import Path
 
 import pandas as pd
-from playwright.async_api import TimeoutError as PlayWrightTimeout
 
+from navigation.transactions import (
+    has_previous_month,
+    has_ver_mas_button,
+    need_to_check_your_phone,
+)
 from page_selectors import (
-    DISABLED_PREVIOUS_MONTH_BUTTON,
     VER_MAS_BUTTON,
     PREVIOUS_MONTH_BUTTON,
     TRANSACTIONS_TABLE,
     MY_PRODUCTS,
-    VALID_OPERATION_TEXT,
     CARD_DATE_NAVIGATOR_BUTTON,
     THIS_MONTH_BUTTON,
 )
@@ -34,30 +35,6 @@ def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-async def has_previous_month(page) -> bool:
-    try:
-        await page.wait_for_selector(DISABLED_PREVIOUS_MONTH_BUTTON, timeout=1_000)
-        return False
-    except PlayWrightTimeout:
-        return True
-
-
-async def has_ver_mas_button(page) -> bool:
-    try:
-        await page.wait_for_selector(VER_MAS_BUTTON, timeout=1_000)
-        return True
-    except PlayWrightTimeout:
-        return False
-
-
-async def need_to_check_your_phone(page) -> bool:
-    try:
-        await page.wait_for_selector(f"text={VALID_OPERATION_TEXT}", timeout=1_000)
-        return True
-    except PlayWrightTimeout:
-        return False
-
-
 async def download_transaction_data(
     page, file_path: Path, is_credit_card: bool = False
 ):
@@ -73,8 +50,15 @@ async def download_transaction_data(
             if await need_to_check_your_phone(page):
                 # give 60 seconds to accept a notification sent to your phone
                 await page.click(VER_MAS_BUTTON)
+
                 print("Check your phone and accept the notification")
-                await asyncio.sleep(60)
+                while input("Have you accepted the notification? (y/n)") not in (
+                    "y",
+                    "Y",
+                    "yes",
+                    "Yes",
+                ):
+                    print("Please accept the notification to continue")
             else:
                 await page.click(VER_MAS_BUTTON)
 

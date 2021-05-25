@@ -7,14 +7,13 @@ from playwright.async_api import (
     TimeoutError as PlayWrightTimeout,
 )
 
-from accounts import Position, CreditCard
+from accounts import Position
 from config import config
 from constants import (
     BEFORE_TIMEOUT_SCREENSHOT_PATH,
     BEFORE_ERROR_SCREENSHOT_PATH,
 )
 from navigation.login import login
-from transactions import download_transactions_file
 
 
 async def main():
@@ -28,18 +27,7 @@ async def main():
             transactions_downloads_path = Path(config.downloads_path)
 
             print(overall_position)
-            accounts_and_cards = [
-                *overall_position.accounts,
-                *overall_position.cards,
-            ]
-
-            for account_or_card in accounts_and_cards:
-                await download_transactions_file(
-                    page,
-                    account_or_card.name,
-                    transactions_downloads_path,
-                    isinstance(account_or_card, CreditCard),
-                )
+            await overall_position.get_transactions(page, transactions_downloads_path)
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
