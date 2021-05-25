@@ -7,7 +7,7 @@ from playwright.async_api import (
     TimeoutError as PlayWrightTimeout,
 )
 
-from accounts import Position
+from accounts import Position, CreditCard
 from config import config
 from constants import (
     BEFORE_TIMEOUT_SCREENSHOT_PATH,
@@ -38,6 +38,7 @@ async def main():
                     page,
                     account_or_card.name,
                     transactions_downloads_path,
+                    isinstance(account_or_card, CreditCard),
                 )
 
         except PlayWrightTimeout as e:

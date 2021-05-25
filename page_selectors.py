@@ -28,4 +28,11 @@ TRANSACTIONS_TABLE = ".c-basic-grid > div:nth-child(1)"
 PREVIOUS_MONTH_BUTTON = ".navigate-back"
 DISABLED_PREVIOUS_MONTH_BUTTON = ".is-disabled.navigate-back"
 VER_MAS_BUTTON = "td.txt-c:nth-child(1) > span:nth-child(1)"
-VALID_OPERATION_TEXT = 'Para consultar tus movimientos de más de 90 días, es necesario que valides esta operación. Si deseas continuar selecciona "Ver más".'
+VALID_OPERATION_TEXT = (
+    "Para consultar tus movimientos de más de 90 días, es necesario que valides esta operación. Si "
+    'deseas continuar selecciona "Ver más". '
+)
+CARD_DATE_NAVIGATOR_BUTTON = ".date-navigator-label"
+THIS_MONTH_BUTTON = (
+    ".combo-box-options > ul:nth-child(1) > li:nth-child(2) > a:nth-child(1)"
+)

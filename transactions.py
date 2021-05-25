@@ -1,11 +1,9 @@
 import asyncio
 from pathlib import Path
-from typing import Union, Iterable
 
 import pandas as pd
-from playwright.async_api import TimeoutError as PlayWrightTimeout, Page
+from playwright.async_api import TimeoutError as PlayWrightTimeout
 
-from accounts import Account, Card
 from page_selectors import (
     DISABLED_PREVIOUS_MONTH_BUTTON,
     VER_MAS_BUTTON,
@@ -13,6 +11,8 @@ from page_selectors import (
     TRANSACTIONS_TABLE,
     MY_PRODUCTS,
     VALID_OPERATION_TEXT,
+    CARD_DATE_NAVIGATOR_BUTTON,
+    THIS_MONTH_BUTTON,
 )
 
 
@@ -58,8 +58,16 @@ async def need_to_check_your_phone(page) -> bool:
         return False
 
 
-async def download_transaction_data(page, file_path: Path):
+async def download_transaction_data(
+    page, file_path: Path, is_credit_card: bool = False
+):
     df = pd.DataFrame()
+
+    # credit card page need additional steps
+    if is_credit_card:
+        await page.click(CARD_DATE_NAVIGATOR_BUTTON)
+        await page.click(THIS_MONTH_BUTTON)
+
     while await has_previous_month(page):
         while await has_ver_mas_button(page):
             if await need_to_check_your_phone(page):
@@ -84,23 +92,12 @@ async def get_transactions_from_page(page):
     return df
 
 
-async def get_transactions(
-    page: Page,
-    accounts_or_cards: Union[Iterable[Account], Iterable[Card]],
-    downloads_path: Path,
-):
-    for account_or_card in accounts_or_cards:
-        await download_transactions_file(
-            page, account_or_card.name, downloads_path / f"{account_or_card.name}.xlsx"
-        )
-
-
 async def download_transactions_file(
-    page, account_or_card_name: str, downloads_path: Path
+    page, account_or_card_name: str, downloads_path: Path, is_credit_card: bool = False
 ):
     print(f"Downloading data from {account_or_card_name}")
     file_path = downloads_path / f"{account_or_card_name}.csv"
 
     await page.click(MY_PRODUCTS)
     await page.click(f"text={account_or_card_name}")
-    await download_transaction_data(page, file_path)
+    await download_transaction_data(page, file_path, is_credit_card)
