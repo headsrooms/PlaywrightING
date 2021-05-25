@@ -48,7 +48,6 @@ async def download_transaction_data(
     while await has_previous_month(page):
         while await has_ver_mas_button(page):
             if await need_to_check_your_phone(page):
-                # give 60 seconds to accept a notification sent to your phone
                 await page.click(VER_MAS_BUTTON)
 
                 print("Check your phone and accept the notification")
