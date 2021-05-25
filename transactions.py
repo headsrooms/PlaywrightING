@@ -74,14 +74,3 @@ async def get_transactions_from_page(page):
     df = pd.read_html(content, thousands=".", decimal=",")[0]
     df = process_transactions_dataframe(df)
     return df
-
-
-async def download_transactions_file(
-    page, account_or_card_name: str, downloads_path: Path, is_credit_card: bool = False
-):
-    print(f"Downloading data from {account_or_card_name}")
-    file_path = downloads_path / f"{account_or_card_name}.csv"
-
-    await page.click(MY_PRODUCTS)
-    await page.click(f"text={account_or_card_name}")
-    await download_transaction_data(page, file_path, is_credit_card)
