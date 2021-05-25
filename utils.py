@@ -4,7 +4,7 @@ from playwright.async_api import Page
 from selectolax.parser import HTMLParser
 
 
-def get_number_from_string_with_dot_and_comma(amount) -> float:
+def get_number_from_string_with_dot_and_comma(amount: str) -> float:
     return float(amount.replace(".", "").replace(",", ".").replace("€", ""))
 
 

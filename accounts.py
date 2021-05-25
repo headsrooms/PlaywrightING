@@ -1,9 +1,11 @@
+import dataclasses
 from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import List, Iterable, Union, Tuple
+from typing import List, Iterable, Union, Tuple, Optional
 
+import pandas as pd
 from more_itertools import pairwise
 from playwright.async_api import Page
 from selectolax.parser import HTMLParser
@@ -30,50 +32,61 @@ class AccountType(Enum):
 @dataclass(frozen=True)
 class Card:
     name: str
+    transactions: Optional[pd.DataFrame]
 
     @staticmethod
     def create(name: str, remaining_info: Union[str, float]):
         if remaining_info == IS_ACTIVATED:
-            return DebitCard(name, is_activated=True)
+            return DebitCard(name, transactions=None, is_activated=True)
         return CreditCard(
-            name, expense=get_number_from_string_with_dot_and_comma(remaining_info)
+            name,
+            transactions=None,
+            expense=get_number_from_string_with_dot_and_comma(remaining_info),
         )
 
     @abstractmethod
-    async def get_transactions(self, page, downloads_path: Path):
+    async def update(self, page: Page) -> "Card":
         raise NotImplementedError
+
+    async def download(self, downloads_path: Path):
+        file_path = downloads_path / f"{self.name}.csv"
+
+        if self.transactions is not None:
+            self.transactions.to_csv(file_path)
 
 
 @dataclass(frozen=True)
 class CreditCard(Card):
     expense: float
 
-    async def get_transactions(self, page, downloads_path: Path):
-        print(f"Downloading data from {self.name}")
-        file_path = downloads_path / f"{self.name}.csv"
-
+    async def update(self, page: Page) -> Card:
+        print(f"Obtaining transactions of {self.name}")
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        await download_transaction_data(page, file_path, is_credit_card=True)
+        transactions = await download_transaction_data(page, is_credit_card=True)
+
+        return dataclasses.replace(self, transactions=transactions)
 
 
 @dataclass(frozen=True)
 class DebitCard(Card):
-    is_activated: bool = True
+    is_activated: bool
 
-    async def get_transactions(self, page, downloads_path: Path):
-        print(f"Downloading data from {self.name}")
-        file_path = downloads_path / f"{self.name}.csv"
+    async def update(self, page: Page) -> Card:
+        print(f"Obtaining transactions of {self.name}")
 
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        await download_transaction_data(page, file_path)
+        transactions = await download_transaction_data(page)
+
+        return dataclasses.replace(self, transactions=transactions)
 
 
 @dataclass(frozen=True)
 class Account:
     name: str
     balance: float
+    transactions: pd.DataFrame = None
 
     @classmethod
     def create(cls, name: str, raw_balance: str):
@@ -139,18 +152,20 @@ class Account:
         )
         return Account.get_account_info(accounts, account_type)
 
-    async def get_transactions(self, page, downloads_path: Path):
-        print(f"Downloading data from {self.name}")
-        file_path = downloads_path / f"{self.name}.csv"
+    async def update(self, page: Page) -> "Account":
+        print(f"Obtaining transactions of {self.name}")
 
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        await download_transaction_data(page, file_path)
+        transactions = await download_transaction_data(page)
 
+        return dataclasses.replace(self, transactions=transactions)
 
-@dataclass(frozen=True)
-class Transaction:
-    pass
+    async def download(self, downloads_path: Path):
+        file_path = downloads_path / f"{self.name}.csv"
+
+        if self.transactions is not None:
+            self.transactions.to_csv(file_path)
 
 
 @dataclass(frozen=True)
@@ -173,7 +188,7 @@ class Position:
             return get_number_from_string_with_dot_and_comma(amount), currency
 
     @staticmethod
-    async def get_position(page):
+    async def create(page: Page):
         total_balance, currency = await Position.parse_balance(page)
         await page.click(MY_PRODUCTS)
         normal_accounts, cards = await Account.parse_account(
@@ -187,10 +202,16 @@ class Position:
         )
         return overall_position
 
-    async def get_transactions(self, page, transactions_downloads_path):
+    async def update(self, page: Page) -> "Position":
+        accounts = [await account.update(page) for account in self.accounts]
+        cards = [await card.update(page) for card in self.cards]
+
+        return dataclasses.replace(self, accounts=accounts, cards=cards)
+
+    async def download(self, downloads_path: Path):
         accounts_and_cards = [
             *self.accounts,
             *self.cards,
         ]
         for account_or_card in accounts_and_cards:
-            await account_or_card.get_transactions(page, transactions_downloads_path)
+            await account_or_card.download(downloads_path)

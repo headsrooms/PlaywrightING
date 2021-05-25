@@ -23,11 +23,12 @@ async def main():
 
         try:
             await login(page)
-            overall_position = await Position.get_position(page)
+            overall_position = await Position.create(page)
             transactions_downloads_path = Path(config.downloads_path)
 
             print(overall_position)
-            await overall_position.get_transactions(page, transactions_downloads_path)
+            overall_position = await overall_position.update(page)
+            await overall_position.download(transactions_downloads_path)
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)

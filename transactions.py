@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import pandas as pd
+from playwright.async_api import Page
 
 from navigation.transactions import (
     has_previous_month,
@@ -34,10 +33,8 @@ def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-async def download_transaction_data(
-    page, file_path: Path, is_credit_card: bool = False
-):
-    df = pd.DataFrame()
+async def download_transaction_data(page: Page, is_credit_card: bool = False) -> pd.DataFrame:
+    transactions = pd.DataFrame()
 
     # credit card page need additional steps
     if is_credit_card:
@@ -50,7 +47,7 @@ async def download_transaction_data(
                 await page.click(VER_MAS_BUTTON)
 
                 print("Check your phone and accept the notification")
-                while input("Have you accepted the notification? (y/n)") not in (
+                while input("Have you accepted the notification? (y/n) ") not in (
                     "y",
                     "Y",
                     "yes",
@@ -60,14 +57,14 @@ async def download_transaction_data(
             else:
                 await page.click(VER_MAS_BUTTON)
 
-        df = pd.concat([await get_transactions_from_page(page), df])
+        transactions = pd.concat([await get_transactions_from_page(page), transactions])
 
         await page.click(PREVIOUS_MONTH_BUTTON)
 
-    df.to_csv(file_path)
+    return transactions
 
 
-async def get_transactions_from_page(page):
+async def get_transactions_from_page(page: Page):
     content = await page.inner_html(TRANSACTIONS_TABLE)
     df = pd.read_html(content, thousands=".", decimal=",")[0]
     df = process_transactions_dataframe(df)
