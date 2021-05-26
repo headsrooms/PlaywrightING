@@ -1,5 +1,8 @@
+import hashlib
 from typing import List
 
+import pandas as pd
+from pandas._typing import FilePathOrBuffer
 from playwright.async_api import Page
 from selectolax.parser import HTMLParser
 
@@ -22,3 +25,24 @@ async def click_on_selectors_list(
     selector = ", ".join(selectors)
     print(f"Before clicking {selector}")
     await page.click(selector, timeout=timeout)
+
+
+class HashableDataFrame(pd.DataFrame):
+    def __hash__(self):
+        digest = hashlib.blake2b(self.values.tobytes()).hexdigest()
+        return int(digest, 16)
+
+    @classmethod
+    def read_html(
+        cls, io: FilePathOrBuffer, thousands=".", decimal=","
+    ) -> List["HashableDataFrame"]:
+        return [
+            cls.from_dict(df.to_dict())
+            for df in pd.read_html(io, thousands=thousands, decimal=decimal)
+        ]
+
+    @classmethod
+    def concat(cls, dfs: List["HashableDataFrame"]) -> "HashableDataFrame":
+        df = pd.concat(dfs)
+
+        return cls.from_dict(df.to_dict())

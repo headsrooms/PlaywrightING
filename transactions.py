@@ -1,4 +1,3 @@
-import pandas as pd
 from playwright.async_api import Page
 
 from navigation.transactions import (
@@ -13,9 +12,12 @@ from page_selectors import (
     CARD_DATE_NAVIGATOR_BUTTON,
     THIS_MONTH_BUTTON,
 )
+from utils import HashableDataFrame
 
 
-def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+def process_transactions_dataframe(
+    transactions: HashableDataFrame,
+) -> HashableDataFrame:
     days = "|".join(
         [
             "Lunes",
@@ -29,12 +31,14 @@ def process_transactions_dataframe(df: pd.DataFrame) -> pd.DataFrame:
             "Hoy",
         ]
     )
-    df["Fecha"] = df["Fecha"].str.replace(days, "", regex=True)
-    return df
+    transactions["Fecha"] = transactions["Fecha"].str.replace(days, "", regex=True)
+    return transactions
 
 
-async def download_transaction_data(page: Page, is_credit_card: bool = False) -> pd.DataFrame:
-    transactions = pd.DataFrame()
+async def download_transaction_data(
+    page: Page, is_credit_card: bool = False
+) -> HashableDataFrame:
+    transactions = HashableDataFrame()
 
     # credit card page need additional steps
     if is_credit_card:
@@ -57,15 +61,17 @@ async def download_transaction_data(page: Page, is_credit_card: bool = False) ->
             else:
                 await page.click(VER_MAS_BUTTON)
 
-        transactions = pd.concat([await get_transactions_from_page(page), transactions])
+        transactions = HashableDataFrame.concat(
+            [await get_transactions_from_page(page), transactions]
+        )
 
         await page.click(PREVIOUS_MONTH_BUTTON)
 
     return transactions
 
 
-async def get_transactions_from_page(page: Page):
+async def get_transactions_from_page(page: Page) -> HashableDataFrame:
     content = await page.inner_html(TRANSACTIONS_TABLE)
-    df = pd.read_html(content, thousands=".", decimal=",")[0]
-    df = process_transactions_dataframe(df)
-    return df
+    transactions = HashableDataFrame.read_html(content, thousands=".", decimal=",")[0]
+    transactions = process_transactions_dataframe(transactions)
+    return transactions

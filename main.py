@@ -1,6 +1,6 @@
-import asyncio
 from pathlib import Path
 
+import asyncclick as click
 from playwright.async_api import (
     async_playwright,
     Error,
@@ -16,19 +16,26 @@ from constants import (
 from navigation.login import login
 
 
-async def main():
+@click.group()
+def cli():
+    pass
+
+
+@click.command()
+async def init():
     async with async_playwright() as p:
         browser = await p.chromium.launch(downloads_path=Path(config.downloads_path))
         page = await browser.new_page(accept_downloads=True)
 
         try:
             await login(page)
-            overall_position = await Position.create(page)
-            transactions_downloads_path = Path(config.downloads_path)
 
-            print(overall_position)
-            overall_position = await overall_position.update(page)
-            await overall_position.download(transactions_downloads_path)
+            old_position = Position.load()
+            new_position = await Position.create(page)
+
+            if old_position != new_position:
+                new_position = await new_position.update(page)
+                new_position.save()
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
@@ -40,4 +47,17 @@ async def main():
             await browser.close()
 
 
-asyncio.run(main())
+@click.command()
+async def download():
+    new_position = Position.load()
+
+    if new_position:
+        transactions_downloads_path = Path(config.downloads_path)
+        await new_position.download(transactions_downloads_path)
+
+
+cli.add_command(init)
+cli.add_command(download)
+
+if __name__ == "__main__":
+    cli(_anyio_backend="asyncio")
