@@ -1,3 +1,4 @@
+import pandas as pd
 from playwright.async_api import Page
 
 from navigation.transactions import (
@@ -12,12 +13,11 @@ from page_selectors import (
     CARD_DATE_NAVIGATOR_BUTTON,
     THIS_MONTH_BUTTON,
 )
-from utils import HashableDataFrame
 
 
 def process_transactions_dataframe(
-    transactions: HashableDataFrame,
-) -> HashableDataFrame:
+    transactions: pd.DataFrame,
+) -> pd.DataFrame:
     days = "|".join(
         [
             "Lunes",
@@ -37,8 +37,8 @@ def process_transactions_dataframe(
 
 async def download_transaction_data(
     page: Page, is_credit_card: bool = False
-) -> HashableDataFrame:
-    transactions = HashableDataFrame()
+) -> pd.DataFrame:
+    transactions = pd.DataFrame()
 
     # credit card page need additional steps
     if is_credit_card:
@@ -61,17 +61,14 @@ async def download_transaction_data(
             else:
                 await page.click(VER_MAS_BUTTON)
 
-        transactions = HashableDataFrame.concat(
-            [await get_transactions_from_page(page), transactions]
-        )
-
+        transactions = pd.concat([await get_transactions_from_page(page), transactions])
         await page.click(PREVIOUS_MONTH_BUTTON)
 
     return transactions
 
 
-async def get_transactions_from_page(page: Page) -> HashableDataFrame:
+async def get_transactions_from_page(page: Page) -> pd.DataFrame:
     content = await page.inner_html(TRANSACTIONS_TABLE)
-    transactions = HashableDataFrame.read_html(content, thousands=".", decimal=",")[0]
+    transactions = pd.read_html(content, thousands=".", decimal=",")[0]
     transactions = process_transactions_dataframe(transactions)
     return transactions

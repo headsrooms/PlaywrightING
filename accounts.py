@@ -6,6 +6,7 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Union, Tuple, Optional
 
+import pandas as pd
 from more_itertools import pairwise
 from playwright.async_api import Page
 from selectolax.parser import HTMLParser
@@ -21,7 +22,6 @@ from transactions import download_transaction_data
 from utils import (
     get_number_from_string_with_dot_and_comma,
     get_texts_within_css_selector,
-    HashableDataFrame,
 )
 
 
@@ -33,7 +33,7 @@ class AccountType(Enum):
 @dataclass(frozen=True)
 class Card:
     name: str
-    transactions: Optional[HashableDataFrame]
+    transactions: Optional[pd.DataFrame]
 
     @staticmethod
     def create(name: str, remaining_info: Union[str, float]):
@@ -87,7 +87,7 @@ class DebitCard(Card):
 class Account:
     name: str
     balance: float
-    transactions: Optional[HashableDataFrame] = None
+    transactions: Optional[pd.DataFrame] = None
 
     @classmethod
     def create(cls, name: str, raw_balance: str):
@@ -209,13 +209,13 @@ class Position:
 
         return dataclasses.replace(self, accounts=accounts, cards=cards)
 
-    async def download(self, downloads_path: Path):
+    async def download(self, download_path: Path):
         accounts_and_cards = [
             *self.accounts,
             *self.cards,
         ]
         for account_or_card in accounts_and_cards:
-            await account_or_card.download(downloads_path)
+            await account_or_card.download(download_path)
 
     def __eq__(self, other):
         # simplicity works
