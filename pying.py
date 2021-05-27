@@ -89,7 +89,6 @@ async def download(download_path: Optional[str]):
 @click.option("--what")
 async def show(what):
     new_position = Position.load()
-    print(new_position.cards)
     print(new_position.accounts)
 
     if new_position:

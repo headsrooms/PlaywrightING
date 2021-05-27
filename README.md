@@ -14,10 +14,9 @@ or
 
     scripts/install.sh
 
-
 ## Commands
 
-Fill out a file like sample.env with your personal data and rename it as .env. 
+Fill out a file like sample.env with your personal data and rename it as .env.
 
 ### Init
 

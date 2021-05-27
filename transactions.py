@@ -45,7 +45,9 @@ def process_transactions_dataframe(
         ]
     )
     transactions["Fecha"] = transactions["Fecha"].str.replace(days, "", regex=True)
-    transactions["Fecha"] = pd.to_datetime(transactions["Fecha"], format="%d/%m/%Y", errors="coerce")
+    transactions["Fecha"] = pd.to_datetime(
+        transactions["Fecha"], format="%d/%m/%Y", errors="coerce"
+    )
     return transactions
 
 

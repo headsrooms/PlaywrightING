@@ -49,8 +49,8 @@ class Card:
     async def update(self, page: Page) -> "Card":
         raise NotImplementedError
 
-    async def download(self, downloads_path: Path):
-        file_path = downloads_path / f"{self.name}.csv"
+    async def download(self, download_path: Path):
+        file_path = download_path / f"{self.name}.csv"
 
         if self.transactions is not None:
             self.transactions.to_csv(file_path)
@@ -87,11 +87,16 @@ class DebitCard(Card):
 class Account:
     name: str
     balance: float
+    cards: Tuple[Card, ...]
     transactions: Optional[pd.DataFrame] = None
 
     @classmethod
-    def create(cls, name: str, raw_balance: str):
-        return cls(name, balance=get_number_from_string_with_dot_and_comma(raw_balance))
+    def create(cls, name: str, raw_balance: str, cards: Tuple[Card, ...]):
+        return cls(
+            name,
+            balance=get_number_from_string_with_dot_and_comma(raw_balance),
+            cards=cards,
+        )
 
     @staticmethod
     def get_cards(accounts: List[List[str]]):
@@ -117,7 +122,7 @@ class Account:
     @staticmethod
     def get_account_info(
         info: List[str], account_type: AccountType
-    ) -> Tuple[Tuple["Account", ...], Union[Tuple[Card, ...], Tuple]]:
+    ) -> Tuple["Account", ...]:
         account_indexes = [
             i for i, chunk in enumerate(info) if chunk == ACCOUNT_DELIMITER
         ]
@@ -135,18 +140,27 @@ class Account:
         else:
             cards = ()
 
+        accounts_cards = [" ".join(account) for account in accounts]
         accounts = [account[0:4] for account in accounts]
-        accounts = tuple(
-            Account.create(name=" ".join(account[:3]), raw_balance=account[-1])
-            for account in accounts
-        )
 
-        return accounts, cards
+        accounts_with_cards = []
+        for i, account in enumerate(accounts):
+            cards_in_this_account = tuple(
+                [card for card in cards if card.name in accounts_cards[i]]
+            )
+            accounts_with_cards.append(
+                Account.create(
+                    name=" ".join(account[:3]),
+                    raw_balance=account[-1],
+                    cards=cards_in_this_account,
+                )
+            )
+        return tuple(accounts_with_cards)
 
     @staticmethod
     async def parse_account(
         page, account_selector: str, account_type: AccountType
-    ) -> Tuple[Tuple["Account", ...], Tuple[Card, ...]]:
+    ) -> Tuple["Account", ...]:
         accounts = await get_texts_within_css_selector(
             page,
             account_selector,
@@ -156,24 +170,28 @@ class Account:
     async def update(self, page: Page) -> "Account":
         print(f"Obtaining transactions of {self.name}")
 
+        cards = tuple([await card.update(page) for card in self.cards])
+
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
         transactions = await download_transaction_data(page)
 
-        return dataclasses.replace(self, transactions=transactions)
+        return dataclasses.replace(self, transactions=transactions, cards=cards)
 
-    async def download(self, downloads_path: Path):
-        file_path = downloads_path / f"{self.name}.csv"
+    async def download(self, download_path: Path):
+        file_path = download_path / f"{self.name}.csv"
 
         if self.transactions is not None:
             self.transactions.to_csv(file_path)
+
+        for card in self.cards:
+            await card.download(download_path)
 
 
 @dataclass(frozen=True)
 class Position:
     balance: float
     accounts: Tuple[Account, ...]
-    cards: Tuple[Card, ...]
 
     @staticmethod
     async def parse_balance(page: Page) -> Tuple[float, str]:
@@ -192,30 +210,25 @@ class Position:
     async def create(page: Page):
         total_balance, currency = await Position.parse_balance(page)
         await page.click(MY_PRODUCTS)
-        normal_accounts, cards = await Account.parse_account(
+        normal_accounts = await Account.parse_account(
             page, NORMAL_ACCOUNTS, AccountType.normal
         )
-        savings_accounts, _ = await Account.parse_account(
+        savings_accounts = await Account.parse_account(
             page, SAVINGS_ACCOUNTS, AccountType.savings
         )
         overall_position = Position(
-            total_balance, (*normal_accounts, *savings_accounts), cards
+            total_balance, (*normal_accounts, *savings_accounts)
         )
         return overall_position
 
     async def update(self, page: Page) -> "Position":
         accounts = tuple([await account.update(page) for account in self.accounts])
-        cards = tuple([await card.update(page) for card in self.cards])
 
-        return dataclasses.replace(self, accounts=accounts, cards=cards)
+        return dataclasses.replace(self, accounts=accounts)
 
     async def download(self, download_path: Path):
-        accounts_and_cards = [
-            *self.accounts,
-            *self.cards,
-        ]
-        for account_or_card in accounts_and_cards:
-            await account_or_card.download(download_path)
+        for account in self.accounts:
+            await account.download(download_path)
 
     def __eq__(self, other):
         # simplicity works
