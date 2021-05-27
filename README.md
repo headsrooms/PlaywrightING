@@ -14,13 +14,12 @@ or
 
     scripts/install.sh
 
-## Run
 
-Fill out a file like sample.env with your personal data and rename it as .env. Then:
+## Commands
 
-### Commands
+Fill out a file like sample.env with your personal data and rename it as .env. 
 
-#### Init
+### Init
 
     poetry run python pying.py init
 
@@ -28,7 +27,7 @@ or
 
     scripts/init.sh
 
-#### Download
+### Download
 
 Files with your accounts transactions will be downloaded in the specified download_path (.env) or supplied parameter.
 
@@ -38,6 +37,6 @@ or
 
     scripts/download.sh [--download_path PATH]
 
-#### Show
+### Show
 
     poetry run python pying.py show
