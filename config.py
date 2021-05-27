@@ -8,7 +8,7 @@ class Config:
     birthday_day: str
     birthday_month: str
     birthday_year: str
-    downloads_path: str
+    download_path: str
 
 
 config = Config.from_path(".env")

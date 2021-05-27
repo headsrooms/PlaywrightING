@@ -18,6 +18,8 @@ html5lib = "^1.1"
 beautifulsoup4 = "^4.9.3"
 asyncclick = "^8.0.1"
 anyio = "^3.1.0"
+tabulate = "^0.8.9"
+rich = "^10.2.2"
 
 [tool.poetry.dev-dependencies]
 
