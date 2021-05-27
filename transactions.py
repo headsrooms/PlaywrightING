@@ -15,6 +15,19 @@ from page_selectors import (
 )
 
 
+def clean(transactions: pd.DataFrame) -> pd.DataFrame:
+    columns = transactions.columns.values
+
+    # Remove unnamed columns
+    columns = [column for column in columns if "Unnamed" not in column]
+
+    return transactions[columns].dropna()
+
+
+def style(transactions: pd.DataFrame) -> pd.DataFrame:
+    return transactions.set_index("Fecha").sort_index(ascending=False)
+
+
 def process_transactions_dataframe(
     transactions: pd.DataFrame,
 ) -> pd.DataFrame:
@@ -32,6 +45,7 @@ def process_transactions_dataframe(
         ]
     )
     transactions["Fecha"] = transactions["Fecha"].str.replace(days, "", regex=True)
+    transactions["Fecha"] = pd.to_datetime(transactions["Fecha"], format="%d/%m/%Y", errors="coerce")
     return transactions
 
 
@@ -64,6 +78,8 @@ async def download_transaction_data(
         transactions = pd.concat([await get_transactions_from_page(page), transactions])
         await page.click(PREVIOUS_MONTH_BUTTON)
 
+    transactions = clean(transactions)
+    transactions = style(transactions)
     return transactions
 
 
