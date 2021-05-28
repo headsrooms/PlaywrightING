@@ -1,6 +1,6 @@
 from playwright.async_api import Page
 
-from page_selectors import LOGOUT_BUTTON, LOGOUT_CLOSE
+from playwrighting.page_selectors import LOGOUT_BUTTON, LOGOUT_CLOSE
 
 
 async def logout(page: Page):

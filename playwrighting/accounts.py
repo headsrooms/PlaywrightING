@@ -12,15 +12,21 @@ from playwright.async_api import Page
 from rich import print
 from selectolax.parser import HTMLParser
 
-from constants import IS_ACTIVATED, ACCOUNT_DELIMITER, CARD_DELIMITER
-from page_selectors import (
+from playwrighting.config import app_path
+from playwrighting.constants import (
+    IS_ACTIVATED,
+    ACCOUNT_DELIMITER,
+    CARD_DELIMITER,
+    STATE_FILE_NAME,
+)
+from playwrighting.page_selectors import (
     OVERALL_POSITION_AMOUNT,
     NORMAL_ACCOUNTS,
     SAVINGS_ACCOUNTS,
     MY_PRODUCTS,
 )
-from transactions import download_transaction_data
-from utils import (
+from playwrighting.transactions import download_transaction_data
+from playwrighting.utils import (
     get_number_from_string_with_dot_and_comma,
     get_texts_within_css_selector,
 )
@@ -240,13 +246,13 @@ class Position:
             return self.balance == other.balance
 
     def save(self):
-        with open("state.pkl", "wb") as state_file:
+        with open(app_path / STATE_FILE_NAME, "wb") as state_file:
             pickle.dump(self, state_file)
 
     @staticmethod
     def load() -> Optional["Position"]:
         try:
-            with open("state.pkl", "rb") as state_file:
+            with open(app_path / STATE_FILE_NAME, "rb") as state_file:
                 pickle_data = pickle.load(state_file)
                 return pickle_data
         except FileNotFoundError:

@@ -3,12 +3,12 @@ from playwright.async_api import Page
 from rich import print
 from rich.prompt import Prompt
 
-from navigation.transactions import (
+from playwrighting.navigation.transactions import (
     has_previous_month,
     has_ver_mas_button,
     need_to_check_your_phone,
 )
-from page_selectors import (
+from playwrighting.page_selectors import (
     VER_MAS_BUTTON,
     PREVIOUS_MONTH_BUTTON,
     TRANSACTIONS_TABLE,

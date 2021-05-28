@@ -4,6 +4,12 @@ version = "0.3.0"
 description = "Get your ING account data"
 authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
 license = "MIT"
+packages = [
+    { include = "playwrighting" }
+]
+
+[tool.poetry.scripts]
+pying = 'playwrighting.pying:cli'
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -15,7 +21,7 @@ more-itertools = "^8.7"
 pandas = "^1.2.4"
 lxml = "^4.6.3"
 html5lib = "^1.1"
-beautifulsoup4 = "^4.9.3"
+beautifulsoup4 = "^4.9"
 asyncclick = "^8.0.1"
 anyio = "^3.1.0"
 tabulate = "^0.8.9"

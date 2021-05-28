@@ -1,6 +1,6 @@
 from playwright.async_api import TimeoutError as PlayWrightTimeout
 
-from page_selectors import (
+from playwrighting.page_selectors import (
     DISABLED_PREVIOUS_MONTH_BUTTON,
     VER_MAS_BUTTON,
     VALID_OPERATION_TEXT,

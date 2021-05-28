@@ -11,18 +11,19 @@ from playwright.async_api import (
 from rich import print
 from rich.traceback import install
 
-from accounts import Position
-from config import config
-from constants import (
+from playwrighting.accounts import Position
+from playwrighting.config import config, app_path
+from playwrighting.constants import (
     BEFORE_TIMEOUT_SCREENSHOT_PATH,
     BEFORE_ERROR_SCREENSHOT_PATH,
+    STATE_FILE_NAME,
 )
-from exceptions import StateFileAlreadyExists
-from navigation.login import login
+from playwrighting.exceptions import StateFileAlreadyExists
+from playwrighting.navigation.login import login
 
 
 def exist_state_file() -> bool:
-    return Path("state.pkl").exists()
+    return Path(app_path / STATE_FILE_NAME).exists()
 
 
 @click.group(chain=True)
@@ -106,7 +107,6 @@ async def download(download_path: Optional[str]):
 @click.option("--what")
 async def show(what):
     new_position = Position.load()
-    print(new_position.accounts)
 
     if new_position:
         print(new_position)

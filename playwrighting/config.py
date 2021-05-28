@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from configclasses import configclass
 
 
@@ -11,4 +13,5 @@ class Config:
     download_path: str
 
 
-config = Config.from_path(".env")
+app_path = Path("~/playwrighting").expanduser()
+config = Config.from_path(app_path / ".env")
