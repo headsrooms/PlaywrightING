@@ -9,6 +9,7 @@ from typing import List, Union, Tuple, Optional
 import pandas as pd
 from more_itertools import pairwise
 from playwright.async_api import Page
+from rich import print
 from selectolax.parser import HTMLParser
 
 from constants import IS_ACTIVATED, ACCOUNT_DELIMITER, CARD_DELIMITER

@@ -1,5 +1,6 @@
 import pandas as pd
 from playwright.async_api import Page
+from rich import print
 
 from navigation.transactions import (
     has_previous_month,
