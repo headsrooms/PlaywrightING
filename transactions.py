@@ -1,6 +1,7 @@
 import pandas as pd
 from playwright.async_api import Page
 from rich import print
+from rich.prompt import Prompt
 
 from navigation.transactions import (
     has_previous_month,
@@ -68,13 +69,16 @@ async def download_transaction_data(
                 await page.click(VER_MAS_BUTTON)
 
                 print("Check your phone and accept the notification")
-                while input("Have you accepted the notification? (y/n) ") not in (
-                    "y",
-                    "Y",
-                    "yes",
-                    "Yes",
-                ):
-                    print("Please accept the notification to continue")
+                Prompt.ask(
+                    "Have you accepted the notification? Check your phone and accept the notification",
+                    choices=[
+                        "y",
+                        "Y",
+                        "yes",
+                        "Yes",
+                    ],
+                    default="y",
+                )
             else:
                 await page.click(VER_MAS_BUTTON)
 

@@ -33,7 +33,9 @@ def cli():
 @click.command()
 async def init():
     if exist_state_file():
-        raise StateFileAlreadyExists("State file already exists. Remove it or execute update command instead")
+        raise StateFileAlreadyExists(
+            "State file already exists. Remove it or execute update command instead"
+        )
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
@@ -57,7 +59,7 @@ async def init():
 
 
 @click.command()
-@click.option('--force', is_flag=True, default=False)
+@click.option("--force", is_flag=True, default=False)
 async def update(force):
     async with async_playwright() as p:
         browser = await p.chromium.launch()
