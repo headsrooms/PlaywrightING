@@ -16,7 +16,12 @@ from constants import (
     BEFORE_TIMEOUT_SCREENSHOT_PATH,
     BEFORE_ERROR_SCREENSHOT_PATH,
 )
+from exceptions import StateFileAlreadyExists
 from navigation.login import login
+
+
+def exist_state_file() -> bool:
+    return Path("state.pkl").exists()
 
 
 @click.group(chain=True)
@@ -26,6 +31,9 @@ def cli():
 
 @click.command()
 async def init():
+    if exist_state_file():
+        raise StateFileAlreadyExists("State file already exists. Remove it or execute update command instead")
+
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
@@ -33,12 +41,9 @@ async def init():
         try:
             await login(page)
 
-            old_position = Position.load()
-            new_position = await Position.create(page)
-
-            if old_position != new_position:
-                new_position = await new_position.update(page)
-                new_position.save()
+            position = await Position.create(page)
+            position = await position.update(page)
+            position.save()
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
