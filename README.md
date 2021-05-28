@@ -7,12 +7,7 @@ like SETUP_COOKIES in selectors.py.
 
 ## Install
 
-    poetry install
-    poetry run playwright install
-
-or
-
-    scripts/install.sh
+    pip install playwrighting
 
 ## Commands
 
@@ -20,22 +15,19 @@ Fill out a file like sample.env with your personal data and rename it as .env.
 
 ### Init
 
-    poetry run python pying.py init
+    pying init
 
-or
+### Update
 
-    scripts/init.sh
+    pying update [--force]
+
 
 ### Download
 
 Files with your accounts transactions will be downloaded in the specified download_path (.env) or supplied parameter.
 
-    poetry run python pying.py download [--download_path PATH]
-
-or
-
-    scripts/download.sh [--download_path PATH]
+    pying download [--download_path PATH]
 
 ### Show
 
-    poetry run python pying.py show
+    pying show
