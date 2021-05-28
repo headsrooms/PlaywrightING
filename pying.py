@@ -9,6 +9,7 @@ from playwright.async_api import (
     TimeoutError as PlayWrightTimeout,
 )
 from rich import print
+from rich.traceback import install
 
 from accounts import Position
 from config import config
@@ -109,6 +110,7 @@ async def show(what):
         print(new_position)
 
 
+install()
 cli.add_command(init)
 cli.add_command(update)
 cli.add_command(download)
