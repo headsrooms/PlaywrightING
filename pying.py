@@ -56,7 +56,8 @@ async def init():
 
 
 @click.command()
-async def update():
+@click.option('--force', is_flag=True, default=False)
+async def update(force):
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         page = await browser.new_page()
@@ -65,8 +66,16 @@ async def update():
             await login(page)
 
             new_position = await Position.create(page)
-            new_position = await new_position.update(page)
-            new_position.save()
+
+            if force:
+                new_position = await new_position.update(page)
+                new_position.save()
+
+            else:
+                old_position = Position.load()
+                if old_position != new_position:
+                    new_position = await new_position.update(page)
+                    new_position.save()
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
