@@ -12,10 +12,8 @@ from rich import print
 from rich.traceback import install
 
 from playwrighting.accounts import Position
-from playwrighting.config import config, app_path
+from playwrighting.config import config, app_path, before_timeout_screenshot_path, before_error_screenshot_path
 from playwrighting.constants import (
-    BEFORE_TIMEOUT_SCREENSHOT_PATH,
-    BEFORE_ERROR_SCREENSHOT_PATH,
     STATE_FILE_NAME,
 )
 from playwrighting.exceptions import StateFileAlreadyExists
@@ -50,10 +48,10 @@ async def init():
             position.save()
 
         except PlayWrightTimeout as e:
-            await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
+            await page.screenshot(path=before_timeout_screenshot_path)
             logging.exception(e)
         except Error as e:
-            await page.screenshot(path=BEFORE_ERROR_SCREENSHOT_PATH)
+            await page.screenshot(path=before_error_screenshot_path)
             logging.exception(e)
         finally:
             await browser.close()
@@ -82,10 +80,10 @@ async def update(force):
                     new_position.save()
 
         except PlayWrightTimeout as e:
-            await page.screenshot(path=BEFORE_TIMEOUT_SCREENSHOT_PATH)
+            await page.screenshot(path=before_timeout_screenshot_path)
             logging.exception(e)
         except Error as e:
-            await page.screenshot(path=BEFORE_ERROR_SCREENSHOT_PATH)
+            await page.screenshot(path=before_error_screenshot_path)
             logging.exception(e)
         finally:
             await browser.close()
