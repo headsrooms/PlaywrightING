@@ -62,6 +62,8 @@ class Card:
         if self.transactions is not None:
             self.transactions.to_csv(file_path)
 
+        print(f"The card transactions have been downloaded as {file_path.resolve()}")
+
 
 @dataclass(frozen=True)
 class CreditCard(Card):
@@ -193,6 +195,8 @@ class Account:
 
         for card in self.cards:
             await card.download(download_path)
+
+        print(f"The account transactions have been downloaded as {file_path.resolve()}")
 
 
 @dataclass(frozen=True)
