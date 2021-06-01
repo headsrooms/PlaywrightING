@@ -3,6 +3,7 @@ name = "playwrightING"
 version = "0.5.0"
 description = "Get your ING account data"
 authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
+readme = "README.md"
 license = "MIT"
 packages = [
     { include = "playwrighting" }
