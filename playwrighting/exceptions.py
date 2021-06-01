@@ -4,3 +4,7 @@ class InvalidSignature(Exception):
 
 class StateFileAlreadyExists(Exception):
     pass
+
+
+class NotAValidChoice(Exception):
+    pass

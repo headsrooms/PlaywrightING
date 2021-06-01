@@ -11,8 +11,6 @@ like SETUP_COOKIES in selectors.py.
 
 ## Commands
 
-Fill out a file like sample.env with your personal data and rename it as .env.
-
 ### Init
 
     pying init
