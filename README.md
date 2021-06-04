@@ -1,9 +1,9 @@
 # PlaywrightING
 
-Get your ING account data.
+Get your ING bank account data.
 
-This works for ING ES (Spain), for another country page you need to change LOGIN_URL in constants.py and some selectors
-like SETUP_COOKIES in selectors.py.
+This works for ING ES (Spain), for another country page you will have to change some values in constants.py and some 
+and selectors.py.
 
 ## Install
 
@@ -11,21 +11,37 @@ like SETUP_COOKIES in selectors.py.
 
 ## Commands
 
+To inspect all CLI commands use:
+
+    pying
+
 ### Init
+
+This command will initialize the app, scraping your bank data from your account and creating an internal file 
+that will have your global position (cards, accounts and transactions).
 
     pying init
 
 ### Update
+
+This command will try to update your account info, if there are some changes.
+You can force the update with parameter --force.
 
     pying update [--force]
 
 
 ### Download
 
-Files with your accounts transactions will be downloaded in the specified download_path (.env) or supplied parameter.
+Files (csv) with your accounts transactions will be downloaded in the specified download_path or supplied parameter 
+--download path.
 
     pying download [--download_path PATH]
 
 ### Show
 
     pying show
+
+
+## Build
+
+    poetry build
