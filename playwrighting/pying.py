@@ -9,14 +9,20 @@ from playwright.async_api import (
     TimeoutError as PlayWrightTimeout,
 )
 from rich import print
+from rich.prompt import Prompt
 from rich.traceback import install
 
 from playwrighting.accounts import Position
-from playwrighting.config import config, app_path, before_timeout_screenshot_path, before_error_screenshot_path
+from playwrighting.config import (
+    config,
+    app_path,
+    before_timeout_screenshot_path,
+    before_error_screenshot_path,
+)
 from playwrighting.constants import (
     STATE_FILE_NAME,
 )
-from playwrighting.exceptions import StateFileAlreadyExists
+from playwrighting.exceptions import StateFileAlreadyExists, NotAValidChoice
 from playwrighting.navigation.login import login
 
 
@@ -102,12 +108,30 @@ async def download(download_path: Optional[str]):
 
 
 @click.command()
-@click.option("--what")
-async def show(what):
-    new_position = Position.load()
+@click.option("--option", default=None)
+async def show(option):
+    # TODO move to enum
+    options = ["position", "accounts", "cards"]
+    if not option:
+        option = Prompt.ask(
+            "What do you want to show?", choices=options, default="position"
+        )
+    else:
+        if option not in options:
+            raise NotAValidChoice("Selected option is not a valid choice")
 
-    if new_position:
-        print(new_position)
+    position = Position.load()
+
+    # TODO create repr and str of all classes
+
+    if position:
+        if option == "position":
+            print(position)
+        elif option == "accounts":
+            print(position.accounts)
+        elif option == "cards":
+            for account in position.accounts:
+                print(account.cards)
 
 
 install()
