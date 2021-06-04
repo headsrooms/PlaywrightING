@@ -20,7 +20,9 @@ class Config:
 
     @classmethod
     def ask_for_config_parameters(cls, root_path: Path) -> "Config":
-        print(f"Configuration file doesn't exist in the expected path {root_path / '.env'}")
+        print(
+            f"Configuration file doesn't exist in the expected path {root_path / '.env'}"
+        )
         config_parameters = {
             "pass_code": Prompt.ask("Enter your security code"),
             "id_number": Prompt.ask("Enter your ID number"),
