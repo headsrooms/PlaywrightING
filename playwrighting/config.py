@@ -1,11 +1,10 @@
-from dataclasses import asdict
-from pathlib import Path
 from datetime import datetime
-
-from rich import print
+from pathlib import Path
 
 from configclasses import configclass
+from configclasses.configclasses import dump
 from configclasses.exceptions import ConfigFilePathDoesNotExist
+from rich import print
 from rich.prompt import Prompt
 
 
@@ -39,12 +38,6 @@ class Config:
 
         return cls(**config_parameters)
 
-    def save(self, path: Path):
-        config_dict = asdict(self)
-        lines = [f"{key}={value}\n" for key, value in config_dict.items()]
-        with open(path, "w") as file:
-            file.writelines(lines)
-
 
 app_path = Path("~/playwrighting").expanduser()
 app_path.mkdir(exist_ok=True)
@@ -54,7 +47,7 @@ try:
     config = Config.from_path(config_path)
 except ConfigFilePathDoesNotExist:
     config = Config.ask_for_config_parameters(app_path)
-    config.save(config_path)
+    dump(config, config_path)
 
 screenshots_path = app_path / "screenshots"
 screenshots_path.mkdir(exist_ok=True)
