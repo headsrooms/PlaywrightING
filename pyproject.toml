@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "playwrightING"
-version = "0.6.0"
+version = "0.6.1"
 description = "Get your ING account data"
 authors = ["Pablo Cabezas <headsrooms@gmail.com>"]
 readme = "README.md"
@@ -15,7 +15,7 @@ pying = 'playwrighting.pying:cli'
 [tool.poetry.dependencies]
 python = "^3.9"
 playwright = "^1.11"
-12factor-configclasses = "^0.3"
+12factor-configclasses = "^0.4"
 python-dotenv = "^0.15"
 selectolax = "^0.2"
 more-itertools = "^8.7"
