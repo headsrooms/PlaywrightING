@@ -1,6 +1,5 @@
 import dataclasses
 import pickle
-from abc import abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
@@ -48,11 +47,11 @@ class Card:
     def create(name: str, remaining_info: Union[str, float]):
         if remaining_info == IS_ACTIVATED:
             return DebitCard(
-                name, transactions=None, is_activated=True, last_update=None
+                name, transactions=pd.DataFrame(), is_activated=True, last_update=None
             )
         return CreditCard(
             name,
-            transactions=None,
+            transactions=pd.DataFrame(),
             expense=get_number_from_string_with_dot_and_comma(remaining_info),
             last_update=None,
         )
@@ -80,7 +79,7 @@ class Card:
     async def download(self, download_path: Path):
         file_path = download_path / f"{self.name}.csv"
 
-        if self.transactions is not None:
+        if self.transactions is not None and not self.transactions.empty:
             self.transactions.to_csv(file_path)
 
         print(f"The card transactions have been downloaded as {file_path.resolve()}")
@@ -101,7 +100,7 @@ class Account:
     name: str
     balance: float
     cards: Tuple[Card, ...]
-    transactions: Optional[pd.DataFrame] = None
+    transactions: Optional[pd.DataFrame] = pd.DataFrame()
     last_update: Optional[datetime] = None
 
     @classmethod
@@ -182,7 +181,7 @@ class Account:
         return Account.get_account_info(accounts, account_type)
 
     def touch(self) -> "Account":
-        cards = tuple([card.touch() for card in  self.cards])
+        cards = tuple([card.touch() for card in self.cards])
         return dataclasses.replace(self, last_update=datetime.now(), cards=cards)
 
     async def update(self, page: Page) -> "Account":
@@ -257,7 +256,7 @@ class Position:
         return dataclasses.replace(self, accounts=accounts, last_update=datetime.now())
 
     def touch(self) -> "Position":
-        accounts = tuple([account.touch() for account in  self.accounts])
+        accounts = tuple([account.touch() for account in self.accounts])
         return dataclasses.replace(self, last_update=datetime.now(), accounts=accounts)
 
     async def download(self, download_path: Path):
