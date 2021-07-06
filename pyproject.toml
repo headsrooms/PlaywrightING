@@ -27,6 +27,7 @@ asyncclick = "^8.0.1"
 anyio = "^3.1.0"
 tabulate = "^0.8.9"
 rich = "^10.2.2"
+dateparser = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 
