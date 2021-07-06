@@ -97,7 +97,7 @@ class DebitCard(Card):
     is_activated: bool
 
     async def update(self, page: Page) -> Card:
-        print(f"Obtaining transactions of {self.name}")
+        print(f"Obtaining new transactions of {self.name}")
 
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
