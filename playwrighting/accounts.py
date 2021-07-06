@@ -269,7 +269,7 @@ class Position:
 
         return dataclasses.replace(self, accounts=accounts, last_update=datetime.now())
 
-    async def touch(self) -> "Position":
+    def touch(self) -> "Position":
         return dataclasses.replace(self, last_update=datetime.now())
 
     async def download(self, download_path: Path):
