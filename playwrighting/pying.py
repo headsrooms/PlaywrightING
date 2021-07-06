@@ -36,11 +36,16 @@ def cli():
 
 
 @click.command()
-async def init():
+@click.option("--force", is_flag=True, default=False)
+async def init(force):
     if exist_state_file():
-        raise StateFileAlreadyExists(
-            "State file already exists. Remove it or execute update command instead"
-        )
+        state_file_path = Path(app_path / STATE_FILE_NAME)
+        if not force:
+            raise StateFileAlreadyExists(
+                f"State file already exists. Remove it, add --force flag or execute update command instead. "
+                f"Path is {state_file_path}"
+            )
+        state_file_path.unlink()
 
     async with async_playwright() as p:
         browser = await p.chromium.launch()
