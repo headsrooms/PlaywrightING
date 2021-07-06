@@ -2,6 +2,7 @@ import dataclasses
 import pickle
 from abc import abstractmethod
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import List, Union, Tuple, Optional
@@ -41,15 +42,19 @@ class AccountType(Enum):
 class Card:
     name: str
     transactions: Optional[pd.DataFrame]
+    last_update: Optional[datetime]
 
     @staticmethod
     def create(name: str, remaining_info: Union[str, float]):
         if remaining_info == IS_ACTIVATED:
-            return DebitCard(name, transactions=None, is_activated=True)
+            return DebitCard(
+                name, transactions=None, is_activated=True, last_update=None
+            )
         return CreditCard(
             name,
             transactions=None,
             expense=get_number_from_string_with_dot_and_comma(remaining_info),
+            last_update=None,
         )
 
     @abstractmethod
@@ -75,7 +80,9 @@ class CreditCard(Card):
         await page.click(f"text={self.name}")
         transactions = await download_transaction_data(page, is_credit_card=True)
 
-        return dataclasses.replace(self, transactions=transactions)
+        return dataclasses.replace(
+            self, transactions=transactions, last_update=datetime.now()
+        )
 
 
 @dataclass(frozen=True)
@@ -89,7 +96,9 @@ class DebitCard(Card):
         await page.click(f"text={self.name}")
         transactions = await download_transaction_data(page)
 
-        return dataclasses.replace(self, transactions=transactions)
+        return dataclasses.replace(
+            self, transactions=transactions, last_update=datetime.now()
+        )
 
 
 @dataclass(frozen=True)
@@ -98,6 +107,7 @@ class Account:
     balance: float
     cards: Tuple[Card, ...]
     transactions: Optional[pd.DataFrame] = None
+    last_update: Optional[datetime] = None
 
     @classmethod
     def create(cls, name: str, raw_balance: str, cards: Tuple[Card, ...]):
@@ -185,7 +195,9 @@ class Account:
         await page.click(f"text={self.name}")
         transactions = await download_transaction_data(page)
 
-        return dataclasses.replace(self, transactions=transactions, cards=cards)
+        return dataclasses.replace(
+            self, transactions=transactions, cards=cards, last_update=datetime.now()
+        )
 
     async def download(self, download_path: Path):
         file_path = download_path / f"{self.name}.csv"
@@ -203,6 +215,7 @@ class Account:
 class Position:
     balance: float
     accounts: Tuple[Account, ...]
+    last_update: datetime
 
     @staticmethod
     async def parse_balance(page: Page) -> Tuple[float, str]:
@@ -228,7 +241,9 @@ class Position:
             page, SAVINGS_ACCOUNTS, AccountType.savings
         )
         overall_position = Position(
-            total_balance, (*normal_accounts, *savings_accounts)
+            total_balance,
+            (*normal_accounts, *savings_accounts),
+            last_update=datetime.now(),
         )
         return overall_position
 
