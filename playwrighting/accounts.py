@@ -26,7 +26,7 @@ from playwrighting.page_selectors import (
     SAVINGS_ACCOUNTS,
     MY_PRODUCTS,
 )
-from playwrighting.transactions import download_transaction_data
+from playwrighting.transactions import get_new_transactions
 from playwrighting.utils import (
     get_number_from_string_with_dot_and_comma,
     get_texts_within_css_selector,
@@ -78,7 +78,14 @@ class CreditCard(Card):
         print(f"Obtaining transactions of {self.name}")
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        transactions = await download_transaction_data(page, is_credit_card=True)
+        transactions = await get_new_transactions(
+            page, self.last_update, is_credit_card=True
+        )
+        transactions = (
+            pd.concat([self.transactions, transactions])
+            .drop_duplicates()
+            .sort_index(ascending=False)
+        )
 
         return dataclasses.replace(
             self, transactions=transactions, last_update=datetime.now()
@@ -94,7 +101,12 @@ class DebitCard(Card):
 
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        transactions = await download_transaction_data(page)
+        transactions = await get_new_transactions(page, self.last_update)
+        transactions = (
+            pd.concat([self.transactions, transactions])
+            .drop_duplicates()
+            .sort_index(ascending=False)
+        )
 
         return dataclasses.replace(
             self, transactions=transactions, last_update=datetime.now()
@@ -193,7 +205,12 @@ class Account:
 
         await page.click(MY_PRODUCTS)
         await page.click(f"text={self.name}")
-        transactions = await download_transaction_data(page)
+        transactions = await get_new_transactions(page, self.last_update)
+        transactions = (
+            pd.concat([self.transactions, transactions])
+            .drop_duplicates()
+            .sort_index(ascending=False)
+        )
 
         return dataclasses.replace(
             self, transactions=transactions, cards=cards, last_update=datetime.now()
