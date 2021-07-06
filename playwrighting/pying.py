@@ -86,9 +86,12 @@ async def update(force):
 
             else:
                 old_position = Position.load()
-                if old_position != new_position:
-                    new_position = await new_position.update(page)
-                    new_position.save()
+                new_position = (
+                    await new_position.update(page)
+                    if old_position != new_position
+                    else new_position.touch()
+                )
+                new_position.save()
 
         except PlayWrightTimeout as e:
             await page.screenshot(path=before_timeout_screenshot_path)
