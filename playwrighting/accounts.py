@@ -57,6 +57,9 @@ class Card:
             last_update=None,
         )
 
+    def touch(self) -> "Card":
+        return dataclasses.replace(self, last_update=datetime.now())
+
     async def update(self, page: Page) -> "Card":
         print(f"Obtaining transactions of {self.name}")
         await page.click(MY_PRODUCTS)
@@ -178,6 +181,10 @@ class Account:
         )
         return Account.get_account_info(accounts, account_type)
 
+    def touch(self) -> "Account":
+        cards = tuple([card.touch() for card in  self.cards])
+        return dataclasses.replace(self, last_update=datetime.now(), cards=cards)
+
     async def update(self, page: Page) -> "Account":
         print(f"Obtaining transactions of {self.name}")
 
@@ -250,7 +257,8 @@ class Position:
         return dataclasses.replace(self, accounts=accounts, last_update=datetime.now())
 
     def touch(self) -> "Position":
-        return dataclasses.replace(self, last_update=datetime.now())
+        accounts = tuple([account.touch() for account in  self.accounts])
+        return dataclasses.replace(self, last_update=datetime.now(), accounts=accounts)
 
     async def download(self, download_path: Path):
         for account in self.accounts:
