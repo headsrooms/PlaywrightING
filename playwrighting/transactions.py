@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pandas as pd
 from playwright.async_api import Page, TimeoutError as PlayWrightTimeout
 from rich import print
@@ -7,6 +9,7 @@ from playwrighting.navigation.transactions import (
     has_previous_month,
     has_ver_mas_button,
     need_to_check_your_phone,
+    previous_month_not_obtained,
 )
 from playwrighting.page_selectors import (
     VER_MAS_BUTTON,
@@ -14,6 +17,7 @@ from playwrighting.page_selectors import (
     TRANSACTIONS_TABLE,
     CARD_DATE_NAVIGATOR_BUTTON,
     THIS_MONTH_BUTTON,
+    TRANSACTIONS_TABLE_ALTERNATIVE,
 )
 
 
@@ -53,17 +57,19 @@ def process_transactions_dataframe(
     return transactions
 
 
-async def download_transaction_data(
-    page: Page, is_credit_card: bool = False
+async def get_new_transactions(
+    page: Page, last_update: datetime, is_credit_card: bool = False
 ) -> pd.DataFrame:
-    transactions = pd.DataFrame()
 
     # credit card page need additional steps
     if is_credit_card:
         await page.click(CARD_DATE_NAVIGATOR_BUTTON)
         await page.click(THIS_MONTH_BUTTON)
 
-    while await has_previous_month(page):
+    transactions = await get_transactions_from_page(page)
+    while await has_previous_month(page) and await previous_month_not_obtained(
+        page, last_update
+    ):
         while await has_ver_mas_button(page):
             if await need_to_check_your_phone(page):
                 await page.click(VER_MAS_BUTTON)
@@ -82,8 +88,8 @@ async def download_transaction_data(
             else:
                 await page.click(VER_MAS_BUTTON)
 
-        transactions = pd.concat([await get_transactions_from_page(page), transactions])
         await page.click(PREVIOUS_MONTH_BUTTON)
+        transactions = pd.concat([await get_transactions_from_page(page), transactions])
 
     transactions = clean(transactions)
     transactions = style(transactions)
