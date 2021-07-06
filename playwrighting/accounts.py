@@ -57,9 +57,22 @@ class Card:
             last_update=None,
         )
 
-    @abstractmethod
     async def update(self, page: Page) -> "Card":
-        raise NotImplementedError
+        print(f"Obtaining transactions of {self.name}")
+        await page.click(MY_PRODUCTS)
+        await page.click(f"text={self.name}")
+        transactions = await get_new_transactions(
+            page, self.last_update, is_credit_card=isinstance(self, CreditCard)
+        )
+        transactions = (
+            pd.concat([self.transactions, transactions])
+            .drop_duplicates()
+            .sort_index(ascending=False)
+        )
+
+        return dataclasses.replace(
+            self, transactions=transactions, last_update=datetime.now()
+        )
 
     async def download(self, download_path: Path):
         file_path = download_path / f"{self.name}.csv"
@@ -74,43 +87,10 @@ class Card:
 class CreditCard(Card):
     expense: float
 
-    async def update(self, page: Page) -> Card:
-        print(f"Obtaining transactions of {self.name}")
-        await page.click(MY_PRODUCTS)
-        await page.click(f"text={self.name}")
-        transactions = await get_new_transactions(
-            page, self.last_update, is_credit_card=True
-        )
-        transactions = (
-            pd.concat([self.transactions, transactions])
-            .drop_duplicates()
-            .sort_index(ascending=False)
-        )
-
-        return dataclasses.replace(
-            self, transactions=transactions, last_update=datetime.now()
-        )
-
 
 @dataclass(frozen=True)
 class DebitCard(Card):
     is_activated: bool
-
-    async def update(self, page: Page) -> Card:
-        print(f"Obtaining new transactions of {self.name}")
-
-        await page.click(MY_PRODUCTS)
-        await page.click(f"text={self.name}")
-        transactions = await get_new_transactions(page, self.last_update)
-        transactions = (
-            pd.concat([self.transactions, transactions])
-            .drop_duplicates()
-            .sort_index(ascending=False)
-        )
-
-        return dataclasses.replace(
-            self, transactions=transactions, last_update=datetime.now()
-        )
 
 
 @dataclass(frozen=True)
