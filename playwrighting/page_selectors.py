@@ -25,6 +25,7 @@ NO_TRANSACTIONS_MESSAGE = "#movements-content > div.row.transactions-grid-contai
 LOGOUT_BUTTON = ".basic-logout-btn"
 LOGOUT_CLOSE = ".ico-close"
 TRANSACTIONS_TABLE = ".c-basic-grid > div:nth-child(1)"
+TRANSACTIONS_TABLE_ALTERNATIVE = ".data-grid > div:nth-child(1)"
 PREVIOUS_MONTH_BUTTON = ".navigate-back"
 DISABLED_PREVIOUS_MONTH_BUTTON = ".is-disabled.navigate-back"
 VER_MAS_BUTTON = "td.txt-c:nth-child(1) > span:nth-child(1)"

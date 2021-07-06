@@ -1,5 +1,5 @@
 import pandas as pd
-from playwright.async_api import Page
+from playwright.async_api import Page, TimeoutError as PlayWrightTimeout
 from rich import print
 from rich.prompt import Prompt
 
@@ -91,7 +91,11 @@ async def download_transaction_data(
 
 
 async def get_transactions_from_page(page: Page) -> pd.DataFrame:
-    content = await page.inner_html(TRANSACTIONS_TABLE)
+    try:
+        content = await page.inner_html(TRANSACTIONS_TABLE, timeout=1_000)
+    except PlayWrightTimeout:
+        content = await page.inner_html(TRANSACTIONS_TABLE_ALTERNATIVE)
+
     transactions = pd.read_html(content, thousands=".", decimal=",")[0]
     transactions = process_transactions_dataframe(transactions)
     return transactions
