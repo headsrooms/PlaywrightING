@@ -267,7 +267,10 @@ class Position:
     async def update(self, page: Page) -> "Position":
         accounts = tuple([await account.update(page) for account in self.accounts])
 
-        return dataclasses.replace(self, accounts=accounts)
+        return dataclasses.replace(self, accounts=accounts, last_update=datetime.now())
+
+    async def touch(self) -> "Position":
+        return dataclasses.replace(self, last_update=datetime.now())
 
     async def download(self, download_path: Path):
         for account in self.accounts:
