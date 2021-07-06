@@ -22,7 +22,11 @@ from playwrighting.config import (
 from playwrighting.constants import (
     STATE_FILE_NAME,
 )
-from playwrighting.exceptions import StateFileAlreadyExists, NotAValidChoice
+from playwrighting.exceptions import (
+    StateFileAlreadyExists,
+    NotAValidChoice,
+    ParentDirectoryDoesNotExist,
+)
 from playwrighting.navigation.login import login
 
 
@@ -107,12 +111,22 @@ async def update(force):
 @click.option(
     "--download_path", default=None, help="path where files will be downloaded"
 )
-async def download(download_path: Optional[str]):
+@click.option("--create_parents", is_flag=True, default=False)
+async def download(download_path: Optional[str], create_parents: bool):
     new_position = Position.load()
 
     if new_position:
         download_path = Path(download_path or config.download_path)
-        await new_position.download(download_path)
+        if create_parents:
+            download_path.mkdir(parents=True, exist_ok=True)
+
+        try:
+            await new_position.download(download_path)
+        except FileNotFoundError:
+            raise ParentDirectoryDoesNotExist(
+                f"Parent directory/ies of your download_path {download_path} doesn't exist, create it or use "
+                f"--create_parents flag "
+            )
 
 
 @click.command()

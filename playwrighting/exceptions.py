@@ -8,3 +8,7 @@ class StateFileAlreadyExists(Exception):
 
 class NotAValidChoice(Exception):
     pass
+
+
+class ParentDirectoryDoesNotExist(Exception):
+    pass
