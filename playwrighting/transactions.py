@@ -98,7 +98,7 @@ async def get_new_transactions(
 
 async def get_transactions_from_page(page: Page) -> pd.DataFrame:
     try:
-        content = await page.inner_html(TRANSACTIONS_TABLE, timeout=1_000)
+        content = await page.inner_html(TRANSACTIONS_TABLE)
     except PlayWrightTimeout:
         content = await page.inner_html(TRANSACTIONS_TABLE_ALTERNATIVE)
 
