@@ -6,6 +6,10 @@ class StateFileAlreadyExists(Exception):
     pass
 
 
+class StateFileDoesNotExist(Exception):
+    pass
+
+
 class NotAValidChoice(Exception):
     pass
 

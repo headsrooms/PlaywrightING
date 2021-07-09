@@ -1,5 +1,8 @@
 import logging
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
+from shutil import copy
 from typing import Optional
 
 import asyncclick as click
@@ -26,6 +29,7 @@ from playwrighting.exceptions import (
     StateFileAlreadyExists,
     NotAValidChoice,
     ParentDirectoryDoesNotExist,
+    StateFileDoesNotExist,
 )
 from playwrighting.navigation.login import login
 
@@ -129,17 +133,23 @@ async def download(download_path: Optional[str], create_parents: bool):
             )
 
 
+class ShowOptions(str, Enum):
+    position: str = "position"
+    account: str = "accounts"
+    cards: str = "cards"
+
+
 @click.command()
 @click.option("--option", default=None)
 async def show(option):
-    # TODO move to enum
-    options = ["position", "accounts", "cards"]
     if not option:
         option = Prompt.ask(
-            "What do you want to show?", choices=options, default="position"
+            "What do you want to show?",
+            choices=list(ShowOptions),
+            default=ShowOptions.position,
         )
     else:
-        if option not in options:
+        if option not in list(ShowOptions):
             raise NotAValidChoice("Selected option is not a valid choice")
 
     position = Position.load()
@@ -156,11 +166,26 @@ async def show(option):
                 print(account.cards)
 
 
+@click.command()
+@click.option("--destiny_name", default=None, help="destiny backup file name")
+async def backup(destiny_name: str):
+    origin_state = app_path / STATE_FILE_NAME
+    now = datetime.now().strftime("%d%b%y-%H%M")
+    destiny_file_name = f"{destiny_name or now}.pkl"
+    destiny_state = app_path / destiny_file_name
+
+    if not origin_state.exists():
+        raise StateFileDoesNotExist("Cannot backup because state file doesn't exist")
+
+    copy(origin_state, destiny_state)
+
+
 install()
 cli.add_command(init)
 cli.add_command(update)
 cli.add_command(download)
 cli.add_command(show)
+cli.add_command(backup)
 
 if __name__ == "__main__":
     cli(_anyio_backend="asyncio")
