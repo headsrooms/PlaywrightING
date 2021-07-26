@@ -60,7 +60,6 @@ def process_transactions_dataframe(
 async def get_new_transactions(
     page: Page, last_update: datetime, is_credit_card: bool = False
 ) -> pd.DataFrame:
-
     # credit card page need additional steps
     if is_credit_card:
         await page.click(CARD_DATE_NAVIGATOR_BUTTON)

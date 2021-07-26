@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from string import ascii_letters
 from typing import List, Union, Tuple, Optional
 
 import pandas as pd
@@ -42,6 +43,17 @@ class Card:
     name: str
     transactions: Optional[pd.DataFrame]
     last_update: Optional[datetime]
+
+    def __str__(self):
+        return f"""
+    {self.position}
+    """
+
+    def position(self) -> str:
+        return f"""
+        Card {self.name}
+        Last update on {self.last_update}
+        """
 
     @staticmethod
     def create(name: str, remaining_info: Union[str, float]):
@@ -102,6 +114,33 @@ class Account:
     cards: Tuple[Card, ...]
     transactions: Optional[pd.DataFrame] = pd.DataFrame()
     last_update: Optional[datetime] = None
+
+    def __str__(self):
+        return f"""
+        {self.position}
+        
+        {"Cards:" if self.cards else ""}
+        {"".join([str(card) for card in self.cards])}
+        """
+
+    def transactions_menu(self, position: int) -> str:
+        cards_lines = "\t".join(
+            [
+                f"{position}.{ascii_letters[i]}) {card.name}"
+                for i, card in enumerate(self.cards)
+            ]
+        )
+        message = f"""{self.name}
+        {f"Cards: {cards_lines}" if self.cards else ""}
+        """
+        return message
+
+    def position(self) -> str:
+        message = f"""Account {self.name}
+        Balance: {self.balance}
+        Last update on {self.last_update}
+        """
+        return message
 
     @classmethod
     def create(cls, name: str, raw_balance: str, cards: Tuple[Card, ...]):
@@ -219,6 +258,20 @@ class Position:
     balance: float
     accounts: Tuple[Account, ...]
     last_update: datetime
+
+    def __str__(self):
+        message = f"""
+        General Position
+        -----------------
+        
+        Balance: {self.balance}
+        Last update on {self.last_update}
+        
+        Accounts:
+        {"".join([f"{i + 1}) {account.position()}" for i, account in enumerate(self.accounts)])}
+        """
+
+        return message
 
     @staticmethod
     async def parse_balance(page: Page) -> Tuple[float, str]:

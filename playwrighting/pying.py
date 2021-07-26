@@ -3,15 +3,18 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from shutil import copy
-from typing import Optional
+from string import ascii_letters
+from typing import Optional, Dict
 
 import asyncclick as click
+import pandas as pd
 from playwright.async_api import (
     async_playwright,
     Error,
     TimeoutError as PlayWrightTimeout,
 )
 from rich import print
+from rich.console import Console
 from rich.prompt import Prompt
 from rich.traceback import install
 
@@ -136,7 +139,22 @@ async def download(download_path: Optional[str], create_parents: bool):
 class ShowOptions(str, Enum):
     position: str = "position"
     account: str = "accounts"
-    cards: str = "cards"
+    transactions: str = "transactions"
+
+
+def get_account_or_card_selection_choices(
+    position: Position,
+) -> Dict[str, pd.DataFrame]:
+    cards_choices = {
+        f"{i + 1}.{ascii_letters[j]}": account.transactions
+        for i, account in enumerate(position.accounts)
+        for j, _ in enumerate(account.cards)
+    }
+    accounts_choices = {
+        f"{i + 1}": account.transactions for i, account in enumerate(position.accounts)
+    }
+
+    return cards_choices | accounts_choices
 
 
 @click.command()
@@ -154,16 +172,39 @@ async def show(option):
 
     position = Position.load()
 
-    # TODO create repr and str of all classes
-
     if position:
         if option == "position":
-            print(position)
+            print(str(position))
         elif option == "accounts":
-            print(position.accounts)
-        elif option == "cards":
-            for account in position.accounts:
-                print(account.cards)
+            message = f"""Accounts:
+        {"".join([f"{i + 1}) {account.position()}" for i, account in enumerate(position.accounts)])}
+        """
+            print(message)
+        elif option == "transactions":
+            cards_lines = "".join(
+                [
+                    f"{i + 1}) {account.transactions_menu(i + 1)}"
+                    for i, account in enumerate(position.accounts)
+                ]
+            )
+            message = f"""Choose an account or card:
+        {cards_lines}
+        """
+
+            account_or_card_selection_choices = get_account_or_card_selection_choices(
+                position
+            )
+            account_or_card_selection = Prompt.ask(
+                message,
+                choices=list(account_or_card_selection_choices.keys()),
+                default=list(account_or_card_selection_choices.keys())[0],
+            )
+
+            console = Console()
+            with console.pager():
+                console.print(
+                    account_or_card_selection_choices[account_or_card_selection]
+                )
 
 
 @click.command()
