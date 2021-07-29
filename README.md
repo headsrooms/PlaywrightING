@@ -1,6 +1,7 @@
 # PlaywrightING
 
 ![CLI video](cli.gif)
+
 Get your ING bank account data.
 
 This works for ING ES (Spain), for another country page you will have to change some values in constants.py and some and
